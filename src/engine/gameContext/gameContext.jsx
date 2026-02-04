@@ -6,24 +6,82 @@ Usage:
 import { GameProvider, useGame } from "@/engine/game/gameContext";
 
 Read / write anywhere:
-const { gameState, setGameValue, setGameState } = useGame();
-
-setGameValue("ui.top", "red");
-console.log(gameState.ui.top);
+const { gameState, increaseHealth } = useGame();
 */
 
 const GameContext = createContext(null);
 
 const DEFAULT_GAME_STATE = Object.freeze({
   player: {
-    health: 100,
+    health: 25,
     money: 0,
-    progress: 0,
-  },
-  ui: {
-    top: "red",
-    mid: "green",
-    right: "blue",
+    items: [],
+    passive: null,
+    level: 1,
+    cavernSeed: "12-LP-T,null,null,BT,S,null",
+    events: [],
+    spells: {
+      slot1: {
+        leftEffectCode: "ATT{R4}",
+        rightEffectCode: "RAATT{R6}",
+        progressionRate: 3,
+        tier: 1,
+        level: 1,
+        upgradePoints: 0,
+        power: "Striking",
+        class: null,
+      },
+      slot2: {
+        leftEffectCode: "GUA{R3}",
+        rightEffectCode: "RAGUA{R4}",
+        progressionRate: 2,
+        tier: 1,
+        level: 3,
+        upgradePoints: 0,
+        power: "Protective",
+        class: "Water",
+      },
+      slot3: {
+        leftEffectCode: "ATT{R4}",
+        rightEffectCode: "RAATT{R6}",
+        progressionRate: 5,
+        tier: 1,
+        level: 5,
+        upgradePoints: 0,
+        power: "Striking",
+        class: "Fire",
+      },
+      slot4: {
+        leftEffectCode: "GUA{R3}",
+        rightEffectCode: "RAGUA{R4}",
+        progressionRate: 2,
+        tier: 3,
+        level: 3,
+        upgradePoints: 0,
+        power: "Protective",
+        class: "Water",
+      },
+      slot5: {
+        leftEffectCode: "ATT{R4}",
+        rightEffectCode: "RAATT{R6}",
+        progressionRate: 4,
+        tier: 2,
+        level: 2,
+        upgradePoints: 0,
+        power: "Striking",
+        class: "Fire",
+      },
+      slot6: {
+        leftEffectCode: "GUA{R3}",
+        rightEffectCode: "RAGUA{R4}",
+        progressionRate: 3,
+        tier: 2,
+        level: 3,
+        upgradePoints: 0,
+        power: "Protective",
+        class: "Water",
+      },
+    },
   },
 });
 
@@ -62,14 +120,120 @@ export const GameProvider = ({ children }) => {
     setGameState(nextState);
   }, []);
 
+  const increaseHealth = useCallback((amount) => {
+    setGameState((prev) => ({
+      ...prev,
+      player: { ...prev.player, health: prev.player.health + amount },
+    }));
+  }, []);
+
+  const decreaseHealth = useCallback((amount) => {
+    setGameState((prev) => ({
+      ...prev,
+      player: { ...prev.player, health: prev.player.health - amount },
+    }));
+  }, []);
+
+  const increaseMoney = useCallback((amount) => {
+    setGameState((prev) => ({
+      ...prev,
+      player: { ...prev.player, money: prev.player.money + amount },
+    }));
+  }, []);
+
+  const decreaseMoney = useCallback((amount) => {
+    setGameState((prev) => ({
+      ...prev,
+      player: { ...prev.player, money: prev.player.money - amount },
+    }));
+  }, []);
+
+  const setPassive = useCallback((value) => {
+    setGameState((prev) => ({
+      ...prev,
+      player: { ...prev.player, passive: value },
+    }));
+  }, []);
+
+  const increasePlayerLevel = useCallback(() => {
+    setGameState((prev) => ({
+      ...prev,
+      player: { ...prev.player, level: prev.player.level + 1 },
+    }));
+  }, []);
+
+  const setCavernSeed = useCallback((value) => {
+    setGameState((prev) => ({
+      ...prev,
+      player: { ...prev.player, cavernSeed: value },
+    }));
+  }, []);
+
+  const addEvent = useCallback((eventId, duration = null) => {
+    setGameState((prev) => ({
+      ...prev,
+      player: {
+        ...prev.player,
+        events: [...prev.player.events, { id: eventId, duration }],
+      },
+    }));
+  }, []);
+
+  const removeEvent = useCallback((eventId) => {
+    setGameState((prev) => ({
+      ...prev,
+      player: {
+        ...prev.player,
+        events: prev.player.events.filter((event) => event.id !== eventId),
+      },
+    }));
+  }, []);
+
+  const updateSpell = useCallback((slot, newSpell) => {
+    setGameState((prev) => ({
+      ...prev,
+      player: {
+        ...prev.player,
+        spells: {
+          ...prev.player.spells,
+          [slot]: newSpell,
+        },
+      },
+    }));
+  }, []);
+
   const value = useMemo(
     () => ({
       gameState,
       setGameState,
       setGameValue,
       loadGameState,
+      increaseHealth,
+      decreaseHealth,
+      increaseMoney,
+      decreaseMoney,
+      setPassive,
+      increasePlayerLevel,
+      setCavernSeed,
+      addEvent,
+      removeEvent,
+      updateSpell,
     }),
-    [gameState, setGameValue, loadGameState]
+    [
+      gameState,
+      setGameValue,
+      loadGameState,
+      increaseHealth,
+      decreaseHealth,
+      increaseMoney,
+      decreaseMoney,
+      setPassive,
+      increasePlayerLevel,
+      setCavernSeed,
+      addEvent,
+      removeEvent,
+      updateSpell,
+    ]
   );
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
